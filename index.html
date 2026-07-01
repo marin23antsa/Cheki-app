@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="チェキ会">
+<meta name="theme-color" content="#1B1A1F">
+<title>チェキ会 順番待ち</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --film: #FAF6ED;
+    --ink: #1B1A1F;
+    --flash: #FF2E74;
+    --marker: #FFC93C;
+    --plum: #6B5B73;
+    --mist: #A79CAE;
+  }
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{
+    margin:0; padding:0; min-height:100vh;
+    background: radial-gradient(ellipse at 50% 20%, #2b2932 0%, var(--ink) 65%);
+    font-family: 'Noto Sans JP', sans-serif;
+    color: var(--film);
+    overflow-x:hidden;
+  }
+  #flashOverlay{
+    position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:999;
+  }
+  #flashOverlay.flash-active{ animation: flashPulse 0.5s ease-out; }
+  @keyframes flashPulse{ 0%{opacity:0;} 12%{opacity:0.85;} 100%{opacity:0;} }
+
+  #displayView{ min-height:100vh; padding: 32px 16px 90px; }
+  .top-row{ display:flex; justify-content:center; margin-bottom:22px; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px; background: var(--marker); color:#4A3300;
+    font-weight:700; font-size:13px; letter-spacing:2px; padding:7px 18px; border-radius:999px;
+    text-transform:uppercase;
+  }
+  .eyebrow .dot{ width:7px; height:7px; border-radius:50%; background:#4A3300; animation: blink 1.4s infinite; }
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+
+  #memberGrid{
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap:16px; max-width:760px; margin:0 auto;
+  }
+  .m-card{
+    position:relative; background: var(--film); border-radius: 6px 6px 14px 14px;
+    padding: 20px 14px 26px; text-align:center; transform: rotate(var(--tilt, -1deg));
+    box-shadow: 0 14px 30px rgba(0,0,0,0.45); transition: box-shadow 0.25s;
+  }
+  .m-card .tape{
+    position:absolute; top:-10px; left:50%; transform: translateX(-50%) rotate(-3deg);
+    width:64px; height:18px; opacity:0.85;
+  }
+  .m-card .m-name{ color: var(--plum); font-size:13px; font-weight:700; margin-bottom:4px; word-break: break-all; }
+  .m-card .m-number{
+    font-family: 'Zen Maru Gothic', sans-serif; font-weight:900; color: var(--ink);
+    font-size: clamp(38px, 8vw, 56px); line-height:1; font-variant-numeric: tabular-nums;
+  }
+  .m-card.pulse{ animation: cardPulse 0.6s ease-out; }
+  @keyframes cardPulse{ 0%{ box-shadow: 0 0 0 6px rgba(255,255,255,0.9), 0 14px 30px rgba(0,0,0,0.45); } 100%{ box-shadow: 0 14px 30px rgba(0,0,0,0.45); } }
+
+  .empty-hint{ text-align:center; color: var(--mist); font-size:14px; margin-top:60px; width:100%; grid-column:1/-1; }
+
+  .updated{ text-align:center; margin-top:26px; font-size:12px; color: var(--mist); opacity:0.8; }
+
+  #staffLink{
+    position:fixed; bottom:18px; right:18px; background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15);
+    color: var(--mist); font-size:12px; padding:8px 14px; border-radius:999px; cursor:pointer; z-index:100;
+  }
+  #staffLink:hover{ background: rgba(255,255,255,0.12); }
+
+  #staffView{ display:none; min-height:100vh; padding: 28px 16px 60px; max-width:480px; margin:0 auto; }
+  .back-link{ color: var(--mist); font-size:14px; cursor:pointer; display:inline-block; margin-bottom:22px; }
+  .staff-title{ font-family:'Zen Maru Gothic',sans-serif; font-weight:700; font-size:20px; margin-bottom:22px; }
+
+  .pin-dots{ display:flex; gap:14px; justify-content:center; margin: 30px 0; }
+  .pin-dot{ width:16px; height:16px; border-radius:50%; border:1.5px solid var(--mist); }
+  .pin-dot.filled{ background: var(--flash); border-color: var(--flash); }
+  .pin-pad{ display:grid; grid-template-columns: repeat(3,1fr); gap:12px; max-width:280px; margin:0 auto; }
+  .pin-pad button{
+    padding: 18px 0; border-radius:12px; border:1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05); color: var(--film); font-size:20px; cursor:pointer;
+  }
+  .pin-pad button:active{ background: rgba(255,255,255,0.15); }
+  .pin-hint{ text-align:center; color: var(--mist); font-size:13px; margin-top:18px; }
+  #pinGate.shake{ animation: shake 0.4s; }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+
+  .chip-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:12px; margin-bottom:18px; }
+  .chip{
+    flex:none; padding:9px 14px; border-radius:999px; border:1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05); color: var(--mist); font-size:13px; cursor:pointer; white-space:nowrap;
+  }
+  .chip.active{ background: var(--flash); color:#fff; border-color: var(--flash); }
+  .chip-add{ background: rgba(255,201,60,0.15); border-color: rgba(255,201,60,0.4); color: var(--marker); }
+
+  .staff-card{ background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:22px; margin-bottom:16px; }
+  .staff-card .k{ color: var(--mist); font-size:13px; margin-bottom:10px; }
+  .stepper{ display:flex; align-items:center; justify-content:center; gap:22px; }
+  .stepper button{
+    width:56px; height:56px; border-radius:50%; border:none; background: var(--flash); color:#fff;
+    font-size:26px; cursor:pointer; font-weight:700; display:flex; align-items:center; justify-content:center;
+  }
+  .stepper button:active{ transform: scale(0.94); }
+  .stepper .big-number{ font-family:'Zen Maru Gothic',sans-serif; font-weight:900; font-size:48px; min-width:110px; text-align:center; font-variant-numeric: tabular-nums; color: var(--film); }
+
+  .direct-row{ display:flex; gap:10px; margin-top:8px; }
+  .direct-row input, .name-row input{
+    flex:1; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.18);
+    background: rgba(0,0,0,0.2); color: var(--film); font-size:16px; min-width:0;
+  }
+  .direct-row button, .name-row button{
+    padding:12px 18px; border-radius:10px; border:none; background: var(--marker); color:#4A3300; font-weight:700; cursor:pointer; white-space:nowrap;
+  }
+  .name-row{ display:flex; gap:10px; margin-top:8px; }
+
+  .danger-btn, .reset-btn{
+    width:100%; padding:14px; border-radius:10px; border:1px solid rgba(255,255,255,0.18);
+    background: transparent; color: var(--mist); cursor:pointer; font-size:14px; margin-top:8px; font-weight: 500;
+  }
+  .danger-btn{ border-color: rgba(255,46,116,0.4); color:#FF9DBC; }
+
+  .staff-updated{ text-align:center; color: var(--mist); font-size:12px; margin-top:16px; }
+  .share-note{ font-size:12px; color: var(--mist); text-align:center; margin-top:22px; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<div id="flashOverlay"></div>
+
+<div id="displayView">
+  <div class="top-row"><div class="eyebrow"><span class="dot"></span>撮影中</div></div>
+  <div id="memberGrid"></div>
+  <div class="updated">更新 <span id="updatedAt">--:--:--</span></div>
+</div>
+<div id="staffLink" onclick="showStaff()">スタッフ用</div>
+
+<div id="staffView">
+  <div class="back-link" onclick="showDisplay()">← 表示画面へ戻る</div>
+  <div class="staff-title">スタッフ操作</div>
+
+  <div id="pinGate">
+    <div class="pin-hint">4桁のパスコードを入力してください</div>
+    <div class="pin-dots" id="pinDots"></div>
+    <div class="pin-pad">
+      <button onclick="pressDigit('1')">1</button>
+      <button onclick="pressDigit('2')">2</button>
+      <button onclick="pressDigit('3')">3</button>
+      <button onclick="pressDigit('4')">4</button>
+      <button onclick="pressDigit('5')">5</button>
+      <button onclick="pressDigit('6')">6</button>
+      <button onclick="pressDigit('7')">7</button>
+      <button onclick="pressDigit('8')">8</button>
+      <button onclick="pressDigit('9')">9</button>
+      <button onclick="clearPin()">C</button>
+      <button onclick="pressDigit('0')">0</button>
+      <button style="visibility:hidden;"></button>
+    </div>
+  </div>
+
+  <div id="staffPanel" style="display:none;">
+    <div class="k" style="color:var(--mist); font-size:13px; margin-bottom:8px;">操作するメンバー</div>
+    <div class="chip-row" id="chipRow"></div>
+
+    <div class="staff-card">
+      <div class="k">現在の番号</div>
+      <div class="stepper">
+        <button onclick="changeBy(-1)">−</button>
+        <div class="big-number" id="staffCurrent">001</div>
+        <button onclick="changeBy(1)">＋</button>
+      </div>
+    </div>
+
+    <div class="staff-card">
+      <div class="k">番号を直接指定する</div>
+      <div class="direct-row">
+        <input type="number" id="directInput" inputmode="numeric" placeholder="例: 15">
+        <button onclick="setDirect()">この番号にする</button>
+      </div>
+    </div>
+
+    <div class="staff-card">
+      <div class="k">メンバー名を変更する</div>
+      <div class="name-row">
+        <input type="text" id="nameInput" placeholder="メンバー名">
+        <button onclick="renameMember()">変更</button>
+      </div>
+    </div>
+
+    <button class="reset-btn" id="resetBtn" onclick="handleResetClick()">選択中のメンバーを1番に戻す</button>
+    <button class="danger-btn" id="removeBtn" onclick="handleRemoveClick()">このメンバーを削除する</button>
+    <div class="staff-updated">最終更新 <span id="staffUpdatedAt">--:--:--</span> ・ 表示画面に自動反映されます</div>
+    <div class="share-note">番号とメンバー情報はブラウザに保存されます。</div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'cheki_members_v2';
+const STAFF_PIN = '2525';
+const MAX_MEMBERS = 10;
+const TAPE_COLORS = ['#FFC93C','#FF2E74','#8C9EFF','#7DD3B0','#FFA45C'];
+const TILTS = [-1.6, 1.2, -0.8, 2, -2.2, 1.6, -1, 0.8, -1.8, 1];
+
+let members = [];
+let prevCurren
