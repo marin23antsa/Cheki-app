@@ -262,7 +262,7 @@ function latestUpdatedAt(){
 function renderDisplay(){
   const grid = document.getElementById('memberGrid');
   if(members.length === 0){
-    grid.innerHTML = '';
+    grid.innerHTML = '<div class="empty-hint">メンバーが登録されていません</div>';
     document.getElementById('updatedAt').textContent = '--:--:--';
     return;
   }
@@ -342,23 +342,21 @@ function updateColor(){
 }
 
 function pollDisplay(){
+  // ★重要: スタッフ画面を開いている間は自動読み込みをスキップして、スタッフの入力の邪魔をしないようにする
+  if(document.getElementById('staffView').style.display === 'block') return;
+
   const loaded = loadMembers();
   if(loaded){
     members = loaded;
     renderDisplay();
-    if(document.getElementById('staffView').style.display === 'block'){
-      if(!currentMember() && members.length) selectedId = members[0].id;
-      renderChips();
-      renderStaffDetail();
-    }
   }
 }
 
 function persistAndRender(){
+  saveMembers();
   renderDisplay();
   renderChips();
   renderStaffDetail();
-  saveMembers();
 }
 
 function changeBy(delta){
