@@ -66,13 +66,13 @@
   .m-card.pulse{ animation: cardPulse 0.6s ease-out; }
   @keyframes cardPulse{ 0%{ box-shadow: 0 0 0 6px rgba(255,255,255,0.9), 0 14px 30px rgba(0,0,0,0.45); } 100%{ box-shadow: 0 14px 30px rgba(0,0,0,0.45); } }
 
-  .empty-hint{ text-align:center; color: var(--mist); font-size:14px; margin-top:60px; width:100%; grid-column:1/-1; }
+  .empty-hint{ text-align:center; color: var(--mist); font-size:14px; margin-top:60px; }
 
   .updated{ text-align:center; margin-top:26px; font-size:12px; color: var(--mist); opacity:0.8; }
 
   #staffLink{
     position:fixed; bottom:18px; right:18px; background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15);
-    color: var(--mist); font-size:12px; padding:8px 14px; border-radius:999px; cursor:pointer; z-index:100;
+    color: var(--mist); font-size:12px; padding:8px 14px; border-radius:999px; cursor:pointer;
   }
   #staffLink:hover{ background: rgba(255,255,255,0.12); }
 
@@ -93,12 +93,13 @@
   #pinGate.shake{ animation: shake 0.4s; }
   @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
 
-  .chip-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:12px; margin-bottom:18px; }
+  .chip-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:18px; }
   .chip{
     flex:none; padding:9px 14px; border-radius:999px; border:1px solid rgba(255,255,255,0.15);
     background: rgba(255,255,255,0.05); color: var(--mist); font-size:13px; cursor:pointer; white-space:nowrap;
   }
   .chip.active{ background: var(--flash); color:#fff; border-color: var(--flash); }
+  .chip-dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:middle; }
   .chip-add{ background: rgba(255,201,60,0.15); border-color: rgba(255,201,60,0.4); color: var(--marker); }
 
   .staff-card{ background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:22px; margin-bottom:16px; }
@@ -106,28 +107,37 @@
   .stepper{ display:flex; align-items:center; justify-content:center; gap:22px; }
   .stepper button{
     width:56px; height:56px; border-radius:50%; border:none; background: var(--flash); color:#fff;
-    font-size:26px; cursor:pointer; font-weight:700; display:flex; align-items:center; justify-content:center;
+    font-size:26px; cursor:pointer; font-weight:700;
   }
   .stepper button:active{ transform: scale(0.94); }
-  .stepper .big-number{ font-family:'Zen Maru Gothic',sans-serif; font-weight:900; font-size:48px; min-width:110px; text-align:center; font-variant-numeric: tabular-nums; color: var(--film); }
+  .stepper .big-number{ font-family:'Zen Maru Gothic',sans-serif; font-weight:900; font-size:48px; min-width:110px; text-align:center; font-variant-numeric: tabular-nums; }
 
   .direct-row{ display:flex; gap:10px; margin-top:8px; }
   .direct-row input, .name-row input{
     flex:1; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.18);
-    background: rgba(0,0,0,0.2); color: var(--film); font-size:16px; min-width:0;
+    background: rgba(0,0,0,0.2); color: var(--film); font-size:16px;
   }
   .direct-row button, .name-row button{
-    padding:12px 18px; border-radius:10px; border:none; background: var(--marker); color:#4A3300; font-weight:700; cursor:pointer; white-space:nowrap;
+    padding:12px 18px; border-radius:10px; border:none; background: var(--marker); color:#4A3300; font-weight:700; cursor:pointer;
   }
   .name-row{ display:flex; gap:10px; margin-top:8px; }
+  .color-row{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .color-row input[type="color"]{
+    width:52px; height:40px; padding:0; border:none; border-radius:8px; background:transparent; cursor:pointer;
+  }
+  .swatch-list{ display:flex; gap:8px; flex-wrap:wrap; }
+  .swatch{
+    width:26px; height:26px; border-radius:50%; cursor:pointer; border:2px solid transparent;
+  }
+  .swatch.active{ border-color:#fff; }
 
   .danger-btn, .reset-btn{
     width:100%; padding:14px; border-radius:10px; border:1px solid rgba(255,255,255,0.18);
-    background: transparent; color: var(--mist); cursor:pointer; font-size:14px; margin-top:8px; font-weight: 500;
+    background: transparent; color: var(--mist); cursor:pointer; font-size:14px; margin-top:8px;
   }
   .danger-btn{ border-color: rgba(255,46,116,0.4); color:#FF9DBC; }
 
-  .staff-updated{ text-align:center; color: var(--mist); font-size:12px; margin-top:16px; }
+  .staff-updated{ text-align:center; color: var(--mist); font-size:12px; margin-top:6px; }
   .share-note{ font-size:12px; color: var(--mist); text-align:center; margin-top:22px; line-height:1.6; }
 </style>
 </head>
@@ -194,10 +204,18 @@
       </div>
     </div>
 
+    <div class="staff-card">
+      <div class="k">メンバーカラー</div>
+      <div class="color-row">
+        <input type="color" id="colorInput" onchange="updateColor()">
+        <div class="swatch-list" id="swatchList"></div>
+      </div>
+    </div>
+
     <button class="reset-btn" id="resetBtn" onclick="handleResetClick()">選択中のメンバーを1番に戻す</button>
     <button class="danger-btn" id="removeBtn" onclick="handleRemoveClick()">このメンバーを削除する</button>
     <div class="staff-updated">最終更新 <span id="staffUpdatedAt">--:--:--</span> ・ 表示画面に自動反映されます</div>
-    <div class="share-note">番号とメンバー情報はブラウザに保存されます。</div>
+    <div class="share-note">番号とメンバー情報は関係者全員の画面で共有されます。</div>
   </div>
 </div>
 
@@ -205,8 +223,267 @@
 const STORAGE_KEY = 'cheki_members_v2';
 const STAFF_PIN = '2525';
 const MAX_MEMBERS = 10;
-const TAPE_COLORS = ['#FFC93C','#FF2E74','#8C9EFF','#7DD3B0','#FFA45C'];
+const TAPE_COLORS = ['#FFC93C','#FF2E74','#8C9EFF','#7DD3B0','#FFA45C','#FF8CD9','#5FD3E8','#C9A0FF','#FFE066','#9AD16A'];
 const TILTS = [-1.6, 1.2, -0.8, 2, -2.2, 1.6, -1, 0.8, -1.8, 1];
 
 let members = [];
-let prevCurren
+let prevCurrentById = {};
+let selectedId = null;
+let pinBuffer = '';
+let authenticated = false;
+let resetArmed = false;
+let removeArmed = false;
+
+function uid(){ return 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function defaultMembers(){
+  return [1,2,3,4].map(n => ({ id: uid(), name: 'メンバー' + n, current: 1, updatedAt: Date.now(), color: TAPE_COLORS[(n-1) % TAPE_COLORS.length] }));
+}
+
+function loadMembers(){
+  try{
+    const res = localStorage.getItem(STORAGE_KEY);
+    if(res) return JSON.parse(res);
+  }catch(e){ console.error('storage load failed', e); }
+  return null;
+}
+function saveMembers(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(members)); }
+  catch(e){ console.error('storage save failed', e); }
+}
+function formatTime(ts){
+  const d = new Date(ts);
+  const p = n => String(n).padStart(2,'0');
+  return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+}
+function latestUpdatedAt(){
+  return members.reduce((max,m) => Math.max(max, m.updatedAt||0), 0);
+}
+
+function renderDisplay(){
+  const grid = document.getElementById('memberGrid');
+  if(members.length === 0){
+    grid.innerHTML = '';
+    document.getElementById('updatedAt').textContent = '--:--:--';
+    return;
+  }
+  grid.innerHTML = members.map((m, i) => {
+    const changed = prevCurrentById[m.id] !== undefined && prevCurrentById[m.id] !== m.current;
+    const color = m.color || TAPE_COLORS[i % TAPE_COLORS.length];
+    return '<div class="m-card' + (changed ? ' pulse' : '') + '" style="--tilt:' + TILTS[i % TILTS.length] + 'deg;">' +
+      '<div class="tape" style="background:' + color + ';"></div>' +
+      '<div class="m-name" style="color:' + color + ';">' + escapeHtml(m.name) + '</div>' +
+      '<div class="m-number">' + String(m.current).padStart(3,'0') + '</div>' +
+    '</div>';
+  }).join('');
+  if(members.some(m => prevCurrentById[m.id] !== undefined && prevCurrentById[m.id] !== m.current)){
+    triggerFlash();
+  }
+  members.forEach(m => { prevCurrentById[m.id] = m.current; });
+  document.getElementById('updatedAt').textContent = formatTime(latestUpdatedAt() || Date.now());
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function triggerFlash(){
+  const el = document.getElementById('flashOverlay');
+  el.classList.remove('flash-active');
+  void el.offsetWidth;
+  el.classList.add('flash-active');
+}
+
+function renderChips(){
+  const row = document.getElementById('chipRow');
+  let html = members.map(m =>
+    '<div class="chip' + (m.id===selectedId ? ' active' : '') + '" onclick="selectMember(\'' + m.id + '\')">' +
+      '<span class="chip-dot" style="background:' + (m.color || '#ccc') + ';"></span>' + escapeHtml(m.name) +
+    '</div>'
+  ).join('');
+  if(members.length < MAX_MEMBERS){
+    html += '<div class="chip chip-add" onclick="addMember()">＋ 追加</div>';
+  }
+  row.innerHTML = html;
+}
+function selectMember(id){
+  selectedId = id;
+  renderChips();
+  renderStaffDetail();
+}
+function currentMember(){ return members.find(m => m.id === selectedId); }
+
+function renderStaffDetail(){
+  const m = currentMember();
+  if(!m){
+    document.getElementById('staffCurrent').textContent = '---';
+    document.getElementById('nameInput').value = '';
+    return;
+  }
+  document.getElementById('staffCurrent').textContent = String(m.current).padStart(3,'0');
+  document.getElementById('staffUpdatedAt').textContent = formatTime(m.updatedAt);
+  document.getElementById('nameInput').value = m.name;
+  document.getElementById('colorInput').value = m.color || '#FFC93C';
+  const swatchList = document.getElementById('swatchList');
+  swatchList.innerHTML = TAPE_COLORS.map(c =>
+    '<div class="swatch' + (m.color === c ? ' active' : '') + '" style="background:' + c + ';" onclick="pickSwatch(\'' + c + '\')"></div>'
+  ).join('');
+}
+function pickSwatch(color){
+  const m = currentMember();
+  if(!m) return;
+  m.color = color;
+  m.updatedAt = Date.now();
+  persistAndRender();
+}
+function updateColor(){
+  const m = currentMember();
+  if(!m) return;
+  m.color = document.getElementById('colorInput').value;
+  m.updatedAt = Date.now();
+  persistAndRender();
+}
+
+function pollDisplay(){
+  const loaded = loadMembers();
+  if(loaded){
+    members = loaded;
+    renderDisplay();
+    if(document.getElementById('staffView').style.display === 'block'){
+      if(!currentMember() && members.length) selectedId = members[0].id;
+      renderChips();
+      renderStaffDetail();
+    }
+  }
+}
+
+function persistAndRender(){
+  renderDisplay();
+  renderChips();
+  renderStaffDetail();
+  saveMembers();
+}
+
+function changeBy(delta){
+  const m = currentMember();
+  if(!m) return;
+  m.current = Math.max(1, m.current + delta);
+  m.updatedAt = Date.now();
+  persistAndRender();
+}
+function setDirect(){
+  const m = currentMember();
+  if(!m) return;
+  const input = document.getElementById('directInput');
+  const v = parseInt(input.value, 10);
+  if(!v || v < 1){ input.style.borderColor = '#FF2E74'; setTimeout(()=>{input.style.borderColor='';},900); return; }
+  m.current = v;
+  m.updatedAt = Date.now();
+  input.value = '';
+  persistAndRender();
+}
+function renameMember(){
+  const m = currentMember();
+  if(!m) return;
+  const val = document.getElementById('nameInput').value.trim();
+  if(!val) return;
+  m.name = val.slice(0, 20);
+  m.updatedAt = Date.now();
+  persistAndRender();
+}
+function addMember(){
+  if(members.length >= MAX_MEMBERS) return;
+  const m = { id: uid(), name: 'メンバー' + (members.length + 1), current: 1, updatedAt: Date.now(), color: TAPE_COLORS[members.length % TAPE_COLORS.length] };
+  members.push(m);
+  selectedId = m.id;
+  persistAndRender();
+}
+function handleResetClick(){
+  const btn = document.getElementById('resetBtn');
+  const m = currentMember();
+  if(!m) return;
+  if(!resetArmed){
+    resetArmed = true;
+    btn.textContent = 'もう一度押すと1番に戻ります';
+    setTimeout(()=>{ resetArmed = false; btn.textContent = '選択中のメンバーを1番に戻す'; }, 3000);
+  } else {
+    resetArmed = false;
+    btn.textContent = '選択中のメンバーを1番に戻す';
+    m.current = 1;
+    m.updatedAt = Date.now();
+    persistAndRender();
+  }
+}
+function handleRemoveClick(){
+  const btn = document.getElementById('removeBtn');
+  const m = currentMember();
+  if(!m) return;
+  if(!removeArmed){
+    removeArmed = true;
+    btn.textContent = 'もう一度押すと削除します';
+    setTimeout(()=>{ removeArmed = false; btn.textContent = 'このメンバーを削除する'; }, 3000);
+  } else {
+    removeArmed = false;
+    btn.textContent = 'このメンバーを削除する';
+    members = members.filter(x => x.id !== m.id);
+    selectedId = members.length ? members[0].id : null;
+    persistAndRender();
+  }
+}
+
+function updatePinDots(){
+  const wrap = document.getElementById('pinDots');
+  wrap.innerHTML = '';
+  for(let i=0;i<4;i++){
+    const d = document.createElement('div');
+    d.className = 'pin-dot' + (i < pinBuffer.length ? ' filled' : '');
+    wrap.appendChild(d);
+  }
+}
+function clearPin(){ pinBuffer=''; updatePinDots(); }
+function pressDigit(d){
+  if(authenticated) return;
+  pinBuffer += d;
+  updatePinDots();
+  if(pinBuffer.length === 4){
+    if(pinBuffer === STAFF_PIN){
+      authenticated = true;
+      document.getElementById('pinGate').style.display = 'none';
+      document.getElementById('staffPanel').style.display = 'block';
+      if(!selectedId && members.length) selectedId = members[0].id;
+      renderChips();
+      renderStaffDetail();
+    } else {
+      const gate = document.getElementById('pinGate');
+      gate.classList.add('shake');
+      setTimeout(()=>gate.classList.remove('shake'), 400);
+      pinBuffer = '';
+      setTimeout(updatePinDots, 200);
+    }
+  }
+}
+function showStaff(){
+  document.getElementById('displayView').style.display = 'none';
+  document.getElementById('staffLink').style.display = 'none';
+  document.getElementById('staffView').style.display = 'block';
+  authenticated = false;
+  pinBuffer = '';
+  updatePinDots();
+  document.getElementById('pinGate').style.display = 'block';
+  document.getElementById('staffPanel').style.display = 'none';
+}
+function showDisplay(){
+  document.getElementById('staffView').style.display = 'none';
+  document.getElementById('displayView').style.display = 'block';
+  document.getElementById('staffLink').style.display = 'block';
+}
+
+(function init(){
+  updatePinDots();
+  const loaded = loadMembers();
+  if(loaded && loaded.length){ members = loaded; }
+  else { members = defaultMembers(); saveMembers(); }
+  selectedId = members.length ? members[0].id : null;
+  renderDisplay();
+  setInterval(pollDisplay, 2500);
+})();
+</script>
+</body>
+</html>
